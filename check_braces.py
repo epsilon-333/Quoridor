@@ -1,0 +1,16 @@
+from pathlib import Path
+p=Path(r"c:\Users\user\OneDrive\바탕 화면\쿼리도\app.js")
+s=p.read_text(encoding='utf-8')
+print('counts:')
+print('  {')
+print('    lbrace:', s.count('{'))
+print('    rbrace:', s.count('}'))
+print('    lparen:', s.count('('))
+print('    rparen:', s.count(')'))
+print('    lbracket:', s.count('['))
+print('    rbracket:', s.count(']'))
+print('    backtick:', s.count('`'))
+print('  }')
+print('\n--- tail ---')
+for line in s.splitlines()[-120:]:
+    print(line)

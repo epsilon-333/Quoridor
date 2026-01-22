@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quoridor — 쿼리도 보드게임</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Quoridor</h1>
+      <div class="controls">
+        <button id="newGameBtn">새 게임</button>
+        <label><input type="checkbox" id="aiToggle"> AI 대전</label>
+        <button id="rulesBtn">게임 규칙</button>
+        <div class="orientation">
+          <label><input type="radio" name="orient" value="h" checked> 가로</label>
+          <label><input type="radio" name="orient" value="v"> 세로</label>
+        </div>
+        <div class="status">
+          <span id="turnLabel">턴: 플레이어 1</span>
+          <span id="wallsLabel">벽: P1 10 | P2 10</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="boardWrap">
+        <div id="board"></div>
+      </div>
+      <aside id="side">
+        <div class="hint">설명: 말을 클릭 → 이동할 칸 클릭. 벽 추가: 방향 선택 후 슬롯 클릭.</div>
+        <section id="log">
+          <h2>기록</h2>
+          <ol id="moves" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </main>
+    <footer></footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
