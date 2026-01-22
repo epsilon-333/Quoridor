@@ -122,11 +122,9 @@ function buildBoard(){
     }
   }
 
-  // ensure board-level handlers for clicks/touches
+  // ensure board-level handler for mouse clicks only (touch uses element handlers)
   boardEl.removeEventListener('click', boardPointerHandler);
-  boardEl.removeEventListener('touchstart', boardPointerHandler);
   boardEl.addEventListener('click', boardPointerHandler);
-  boardEl.addEventListener('touchstart', boardPointerHandler, {passive:false});
 }
 
 function clearHighlights(){ Array.from(boardEl.querySelectorAll('.move-dot')).forEach(n=>n.remove()); if(previewEl){ previewEl.remove(); previewEl=null; } }
