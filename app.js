@@ -12,6 +12,7 @@ const aiToggle = document.getElementById('aiToggle');
 let state = null;
 let previewEl = null;
 let isTouch = false;
+let wallDrag = null;
 
 
 function mkState(){
@@ -77,6 +78,8 @@ function buildBoard(){
       el.dataset.x = x;
       el.dataset.y = y;
       el.addEventListener('click', onCellClick);
+      // ensure touch taps on cells trigger selection on mobile
+      el.addEventListener('touchend', (ev)=>{ ev.preventDefault(); ev.stopPropagation(); handleCellSelection(x,y); });
       boardEl.appendChild(el);
     }
   }
@@ -97,8 +100,8 @@ function buildBoard(){
       slot.style.cursor = 'pointer';
       slot.dataset.x = x; slot.dataset.y = y;
       slot.addEventListener('click', (e)=>{ e.stopPropagation(); onWallSlotClick(x,y); });
-      // ensure touch taps on mobile trigger wall placement
-      slot.addEventListener('touchend', (e)=>{ e.preventDefault(); e.stopPropagation(); onWallSlotClick(x,y); });
+      // start drag/preview on touchstart; move with touchmove; place on touchend
+      slot.addEventListener('touchstart', (e)=>{ e.stopPropagation(); e.preventDefault(); startWallDrag(x,y); });
       slot.addEventListener('mouseenter', ()=>onWallSlotHover(x,y,true));
       slot.addEventListener('mouseleave', ()=>onWallSlotHover(x,y,false));
       slot.addEventListener('contextmenu', (e)=>{ e.preventDefault(); state.orient = state.orient==='h'? 'v' : 'h'; const r=document.querySelector(`input[name="orient"][value="${state.orient}"]`); if(r) r.checked=true; onWallSlotHover(x,y,true); });
@@ -425,6 +428,31 @@ function onWallSlotHover(x,y,enter){
   p.style.background = reason.ok? 'rgba(0,160,0,0.35)' : 'rgba(160,0,0,0.3)';
   if(!reason.ok) console.log('wall preview deny:', reason.reason, state.orient, x, y);
   previewEl = p; boardEl.appendChild(p);
+}
+
+function startWallDrag(x,y){
+  // cancel any pawn selection while dragging a wall
+  state.selected = null;
+  wallDrag = {x,y};
+  onWallSlotHover(x,y,true);
+  // attach move/end listeners
+  function mv(e){ if(!e.touches || !e.touches[0]) return; const cx=e.touches[0].clientX, cy=e.touches[0].clientY; const el = document.elementFromPoint(cx, cy); if(!el) return; const slot = el.closest ? el.closest('.wall-slot') : findAncestorByClass(el,'wall-slot'); if(slot){ const nx=Number(slot.dataset.x), ny=Number(slot.dataset.y); if(nx!==wallDrag.x || ny!==wallDrag.y){ wallDrag.x=nx; wallDrag.y=ny; onWallSlotHover(nx,ny,true); } } }
+  function up(e){ e.preventDefault(); e.stopPropagation(); endWallDrag(); }
+  window.addEventListener('touchmove', mv, {passive:false});
+  window.addEventListener('touchend', up, {passive:false});
+  // store handlers so we can remove them
+  wallDrag._mv = mv; wallDrag._up = up;
+}
+
+function endWallDrag(){
+  if(!wallDrag) return;
+  // remove listeners
+  try{ window.removeEventListener('touchmove', wallDrag._mv); window.removeEventListener('touchend', wallDrag._up); }catch(e){}
+  const x = wallDrag.x, y = wallDrag.y;
+  wallDrag = null;
+  if(previewEl){ previewEl.remove(); previewEl=null; }
+  // attempt to place at last slot
+  onWallSlotClick(x,y);
 }
 
 function nextStepTowardsGoal(player){ const start=state.pawns[player]; const target=(player===0)?0:BOARD_N-1; const q=[{x:start.x,y:start.y,prev:null}]; const seen=new Set([coordKey(start.x,start.y)]); while(q.length){ const cur=q.shift(); if(cur.y===target){ let node=cur; while(node.prev && node.prev.prev) node=node.prev; return {x:node.x,y:node.y}; } const nbs=legalMovesSimple(cur.x,cur.y); for(const nb of nbs){ const k=coordKey(nb.x,nb.y); if(seen.has(k)) continue; seen.add(k); q.push({x:nb.x,y:nb.y,prev:cur}); } } return null; }
