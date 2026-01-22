@@ -91,8 +91,8 @@ function buildBoard(){
       el.dataset.x = x;
       el.dataset.y = y;
       el.addEventListener('click', onCellClick);
-      // ensure touch taps on cells trigger selection on mobile
-      el.addEventListener('touchend', (ev)=>{ ev.preventDefault(); ev.stopPropagation(); handleCellSelection(x,y); });
+      // ensure touch taps on cells trigger selection on mobile (use touchstart for reliability)
+      el.addEventListener('touchstart', (ev)=>{ ev.preventDefault(); ev.stopPropagation(); handleCellSelection(x,y); }, {passive:false});
       boardEl.appendChild(el);
     }
   }
