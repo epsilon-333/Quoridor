@@ -101,7 +101,7 @@ function buildBoard(){
       slot.dataset.x = x; slot.dataset.y = y;
       slot.addEventListener('click', (e)=>{ e.stopPropagation(); onWallSlotClick(x,y); });
       // start drag/preview on touchstart; move with touchmove; place on touchend
-      slot.addEventListener('touchstart', (e)=>{ e.stopPropagation(); e.preventDefault(); startWallDrag(x,y); });
+      slot.addEventListener('touchstart', (e)=>{ e.stopPropagation(); e.preventDefault(); if(state.selected && state.selected.type==='pawn') return; startWallDrag(x,y); });
       slot.addEventListener('mouseenter', ()=>onWallSlotHover(x,y,true));
       slot.addEventListener('mouseleave', ()=>onWallSlotHover(x,y,false));
       slot.addEventListener('contextmenu', (e)=>{ e.preventDefault(); state.orient = state.orient==='h'? 'v' : 'h'; const r=document.querySelector(`input[name="orient"][value="${state.orient}"]`); if(r) r.checked=true; onWallSlotHover(x,y,true); });
@@ -130,7 +130,12 @@ function render(){
   state.pawns.forEach((p,i)=>{
     const sel = `.cell[data-x="${p.x}"][data-y="${p.y}"]`;
     const ce = boardEl.querySelector(sel);
-    if(ce){ const e = document.createElement('div'); e.className = 'pawn p'+(i+1); e.addEventListener('click', (ev)=>{ onPawnClick(i); }); e.addEventListener('touchend', (ev)=>{ ev.preventDefault(); ev.stopPropagation(); onPawnClick(i); }); const prev = ce.querySelector('.pawn'); if(prev) prev.remove(); ce.appendChild(e); }
+    if(ce){ const e = document.createElement('div'); e.className = 'pawn p'+(i+1);
+      e.addEventListener('click', (ev)=>{ ev.stopPropagation(); onPawnClick(i); });
+      // select on touchstart so subsequent touchend on cells doesn't interfere
+      e.addEventListener('touchstart', (ev)=>{ ev.preventDefault(); ev.stopPropagation(); onPawnClick(i); });
+      e.addEventListener('touchend', (ev)=>{ ev.preventDefault(); ev.stopPropagation(); });
+      const prev = ce.querySelector('.pawn'); if(prev) prev.remove(); ce.appendChild(e); }
   });
 
 
