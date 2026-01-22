@@ -371,6 +371,8 @@ function boardPointerHandler(e){
   if(slot) return;
   const pawn = el.closest ? el.closest('.pawn') : findAncestorByClass(el,'pawn');
   if(pawn) return;
+  // only prevent default when we are going to handle the board-level selection
+  if(e.touches && e.touches[0]){ e.preventDefault(); }
   const cell = el.closest ? el.closest('.cell') : findAncestorByClass(el,'cell');
   if(cell) handleCellSelection(Number(cell.dataset.x), Number(cell.dataset.y));
 }
