@@ -366,6 +366,11 @@ function boardPointerHandler(e){
   else { clientX = e.clientX; clientY = e.clientY; }
   const el = document.elementFromPoint(clientX, clientY);
   if(!el) return;
+  // If the touch is on a wall-slot or pawn, let their own click handlers run.
+  const slot = el.closest ? el.closest('.wall-slot') : findAncestorByClass(el,'wall-slot');
+  if(slot) return;
+  const pawn = el.closest ? el.closest('.pawn') : findAncestorByClass(el,'pawn');
+  if(pawn) return;
   const cell = el.closest ? el.closest('.cell') : findAncestorByClass(el,'cell');
   if(cell) handleCellSelection(Number(cell.dataset.x), Number(cell.dataset.y));
 }
