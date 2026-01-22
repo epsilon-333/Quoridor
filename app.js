@@ -44,28 +44,41 @@ function computeCell(){
   const maxByHeight = Math.floor(window.innerHeight * 0.75);
   avail = Math.min(avail, maxByHeight || avail);
   if(!avail || avail < BOARD_N) avail = Math.max(360, BOARD_N*40);
+  // subtract board borders/padding so content area (cells) fit within visible wrap
+  let borderTotal = 0;
+  try{
+    const cs = getComputedStyle(boardEl);
+    const bl = parseFloat(cs.borderLeftWidth) || 0;
+    const br = parseFloat(cs.borderRightWidth) || 0;
+    const pl = parseFloat(cs.paddingLeft) || 0;
+    const pr = parseFloat(cs.paddingRight) || 0;
+    borderTotal = bl + br + pl + pr;
+  }catch(e){ borderTotal = 0; }
+  const availContent = Math.max(0, avail - borderTotal);
   const floatCell = avail / BOARD_N;
-  let cell = Math.round(floatCell);
+  // compute cell based on available content area (exclude borders)
+  let cell = Math.max(1, Math.floor(availContent / BOARD_N));
   // ensure we never overflow the container
-  if(cell * BOARD_N > avail) cell = Math.floor(floatCell);
-  cell = Math.max(1, cell);
+  if(cell * BOARD_N > availContent) cell = Math.floor(availContent/BOARD_N) || 1;
   const boardPx = cell * BOARD_N;
   // update CSS variables so CSS-based elements (walls) match JS sizes
   document.documentElement.style.setProperty('--board-size', `${boardPx}px`);
   document.documentElement.style.setProperty('--cell-size', `${cell}px`);
   const wallThickness = Math.max(8, Math.floor(cell*0.12));
   document.documentElement.style.setProperty('--wall-thickness', `${wallThickness}px`);
-  return { cell, size: boardPx, avail, wallThickness };
+  return { cell, size: boardPx, avail, wallThickness, borderTotal };
 }
 
 function buildBoard(){
+  // refresh touch detection (helps when using browser device emulation)
+  isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   boardEl.innerHTML = '';
   previewEl = null;
   const { cell, size: boardPx, avail } = computeCell();
   boardEl.style.width = `${boardPx}px`;
   boardEl.style.height = `${boardPx}px`;
-  // center board inside wrapper to absorb leftover pixels
-  try{ const wrap = document.getElementById('boardWrap') || boardEl.parentElement; if(wrap){ const left = Math.max(0, Math.round((avail - boardPx)/2)); boardEl.style.marginLeft = left + 'px'; } }catch(e){}
+  // center board inside wrapper to absorb leftover pixels (account for borders)
+  try{ const wrap = document.getElementById('boardWrap') || boardEl.parentElement; if(wrap){ const left = Math.max(0, Math.round((avail - boardPx - (computeCell().borderTotal||0))/2)); boardEl.style.marginLeft = left + 'px'; } }catch(e){}
 
   for(let y=0;y<BOARD_N;y++){
     for(let x=0;x<BOARD_N;x++){
@@ -372,7 +385,7 @@ function onCellClick(e){
 function boardPointerHandler(e){
   // support both mouse click and touch
   let clientX, clientY;
-  if(e.touches && e.touches[0]){ clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; e.preventDefault(); }
+  if(e.touches && e.touches[0]){ clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
   else { clientX = e.clientX; clientY = e.clientY; }
   const el = document.elementFromPoint(clientX, clientY);
   if(!el) return;
