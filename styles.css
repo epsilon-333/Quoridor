@@ -63,6 +63,21 @@ footer{margin-top:12px;font-size:13px;color:#666}
   header h1{font-size:18px}
 }
 
+/* Force horizontal text on small screens to avoid vertical rendering */
+@media (max-width:600px){
+  html, body, .app { writing-mode: horizontal-tb !important; }
+}
+
+/* Mobile: ensure wall dimensions equal two cells and are touch friendly */
+@media (max-width:600px){
+  .wall.h, .wall-preview.h { width: calc(var(--cell-size) * 2) !important; }
+  .wall.v, .wall-preview.v { height: calc(var(--cell-size) * 2) !important; }
+  /* increase wall thickness proportionally on small screens */
+  :root { --wall-thickness: calc(var(--cell-size) * 0.14); }
+  /* make wall-slot visible and larger for touch */
+  .wall-slot{opacity:0.8}
+}
+
 @media (pointer:coarse){
   .cell{border-width:1px}
   .pawn{width:46%;height:46%}
